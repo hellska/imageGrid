@@ -1,0 +1,5 @@
+data/data/*
+.project
+.settings/
+bin
+src/data/*
