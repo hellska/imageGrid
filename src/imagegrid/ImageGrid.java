@@ -15,8 +15,8 @@ public class ImageGrid extends PApplet {
 	
 	boolean isStarted;
 
-	int rows = 20;
 	// cols > rows
+	int rows = 20;
 	int cols = 30;
 	int imgNum = 5;
 	int currImg = 0;
@@ -269,9 +269,11 @@ public class ImageGrid extends PApplet {
 	/** select random image from the image list array and show in the PApplet */
 	void randomImage() {
 		
-		currImg = (int) random(4);
+		currImg = (int) random(imgList.length);
 		img = imgList[currImg].get(0, 0, imgList[currImg].width, imgList[currImg].height);
-		image(img, borderX, borderY);
+		// change the current grid background
+		grid.image(img);
+		image(grid.immagine, borderX, borderY);
 		
 	}
 	
@@ -280,8 +282,8 @@ public class ImageGrid extends PApplet {
 		
 		int[] coords = new int[3];
 		// if statements prevent drawing if click outside the picture
-		if (mouseX>borderX && mouseX < (borderX + img.width)) {
-			if (mouseY>borderY && mouseY < (borderY + img.height)) {
+		if (mouseX>borderX && mouseX < (borderX + (cols * grid.gridXstep ))) {
+			if (mouseY>borderY && mouseY < (borderY + (rows * grid.gridYstep))) {
 
 				coords[0] = (int) floor((mouseX - borderX) / grid.gridXstep);
 				coords[1] = (int) floor((mouseY - borderY) / grid.gridYstep);
@@ -473,7 +475,7 @@ public class ImageGrid extends PApplet {
 		return pixelCol;
 	}
 	
-	/** mask the current image using aother image as alpha channel */
+	/** mask the current image using another image as alpha channel */
 	void maskera() {
 		
 		PImage tempImg = imgList[2].get(0,0,imgList[2].width,imgList[2].height);
@@ -484,7 +486,10 @@ public class ImageGrid extends PApplet {
 	
 	//////////////// O S C   M E T H O D S //
 	
-	/** send a single freq and trigger a single note synth in supercollider */
+	/** 
+	 * send a single frequency
+	 * trigger a single note synthesizer in SuperCollider 
+	 * */
 	void sendColor(float freq, int colore) {
 		OscMessage redmess;
 		println("frequenza inviata: "+freq);
@@ -505,7 +510,7 @@ public class ImageGrid extends PApplet {
 			oscP5.send(redmess, supercollider);
 			break;
 		}
-			
+	
 	}
 
 	/** Incoming OSC messages management */

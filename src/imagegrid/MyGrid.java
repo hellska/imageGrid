@@ -28,5 +28,11 @@ public class MyGrid extends PApplet{
 			this.gridPosStatus[i] = false;
 		}
 	}
+	
+	public void image(PImage img) {
+		
+		this.immagine = img;
+		
+	}
 
 }
