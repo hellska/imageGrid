@@ -1,6 +1,7 @@
 package imagegrid;
 
 import java.io.File;
+// import java.awt.Frame;
 import netP5.NetAddress;
 import processing.core.PApplet;
 import processing.core.PImage;
@@ -13,6 +14,7 @@ import oscP5.*;
 @SuppressWarnings("serial")
 public class ImageGrid extends PApplet {
 	
+//	Frame fullScreenFrame;
 	boolean isStarted;
 
 	// cols > rows
@@ -73,11 +75,15 @@ public class ImageGrid extends PApplet {
 	
 	public void setup() {
 		
+		
+		
+		
 		isStarted = false;
 		isRedFFT = false;
 		
 		frameRate(25);
-		size(1440,830, P2D);
+		//size(1440,830, P2D);
+		size(1440,900, P2D);
 		// size(1840,870, P2D);
 		
 		elNo = 0;
@@ -707,9 +713,9 @@ public class ImageGrid extends PApplet {
 	}
 	
 	/** program entry point */
-	public static void main(String _args[]) {
+	public static void main(String args[]) {
 		
-		PApplet.main(new String[] { imagegrid.ImageGrid.class.getName() });
+		PApplet.main(new String[] { "--present", imagegrid.ImageGrid.class.getName() });
 		
 	}
 	
