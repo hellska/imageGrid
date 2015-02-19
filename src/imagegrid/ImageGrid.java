@@ -1,12 +1,12 @@
 package imagegrid;
 
 import java.io.File;
-
 import netP5.NetAddress;
 import processing.core.PApplet;
 import processing.core.PImage;
 import imagegrid.MyGrid;
 import imagegrid.GridElement;
+import imagegrid.Cerchio;
 import oscP5.*;
 // import fullscreen.*;
 
@@ -16,8 +16,8 @@ public class ImageGrid extends PApplet {
 	boolean isStarted;
 
 	// cols > rows
-	int rows = 20;
-	int cols = 30;
+	int rows = 10;
+	int cols = 10;
 	int imgNum = 5;
 	int currImg = 0;
 	int drawmode = 0;
@@ -58,12 +58,18 @@ public class ImageGrid extends PApplet {
 	int startRedFFT, startGreenFFT, startBlueFFT;
 	int deltaRedFFT = 300;
 	int deltaGreenFFT = 300;
-	int deltaBlueFFT = 300;
+	int deltaBlueFFT = 25 * 5; // frames x seconds	
 	
 	Object[] redFFT, greenFFT, blueFFT; 
 	
 	boolean isRedFFT, isGreenFFT, isBlueFFT;
 	int countRedFFT, countGreenFFT, countBlueFFT;
+	
+	/* circle network variables */
+	Cerchio[] cerchi;
+	int ccount = 0;
+	int currentPointer = 0;
+	boolean chcol = false;
 	
 	public void setup() {
 		
@@ -73,7 +79,6 @@ public class ImageGrid extends PApplet {
 		frameRate(25);
 		size(1440,830, P2D);
 		// size(1840,870, P2D);
-		
 		
 		elNo = 0;
 		frameStep = 1;
@@ -125,6 +130,9 @@ public class ImageGrid extends PApplet {
 		println("colore: "+newCol);
 		sendColor(newCol, 1);
 		
+		// set the network array of object Cerchio
+		cerchi = new Cerchio[cols * rows];
+		
 	}
 
 	public void draw() {
@@ -159,7 +167,7 @@ public class ImageGrid extends PApplet {
 			
 			int pixel = (int)random(img.pixels.length);
 			float newCol = pixelColor(1, pixel);
-			println("invio rosso: "+newCol);
+			//println("invio rosso: "+newCol);
 			sendColor(newCol, 1);
 			startTred = millis();
 			
@@ -169,7 +177,7 @@ public class ImageGrid extends PApplet {
 			
 			int pixel = (int)random(img.pixels.length);
 			float newCol = pixelColor(2, pixel); 
-			println("invio verde: "+newCol);
+			//println("invio verde: "+newCol);
 			sendColor(newCol, 2);
 			startGreen = millis();
 			
@@ -179,7 +187,7 @@ public class ImageGrid extends PApplet {
 		    
 			int pixel = (int)random(img.pixels.length);
 			float newCol = pixelColor(3, pixel);
-			println("invio blu: "+newCol);
+			//println("invio blu: "+newCol);
 			sendColor(newCol, 3);
 			startTblue = millis();
 			
@@ -192,7 +200,7 @@ public class ImageGrid extends PApplet {
 				if (countRedFFT >= redFFT.length-1 ) {
 					
 					isRedFFT = false;
-					println("Fine elaborazione array redFFT");
+					//println("Fine elaborazione array redFFT");
 					
 				} else {
 					
@@ -214,20 +222,78 @@ public class ImageGrid extends PApplet {
 			
 			if ( now >= startGreenFFT + deltaGreenFFT) {
 				
-				println("green IN");
+				float[] gFFT = new float[0];
+				//println("green IN");
+				
+				// create an array of float from an array of object
 				for (int e=0;e<=greenFFT.length-1;e++) {
 					
-					startGreenFFT = millis();
-					float el = gridElementFromFFT(greenFFT[e]);
-					int elem = (int)el - 1;
-					int[] coords = coordsFromElement(elem);
-					// Chiamata alla funzione	
-					collageGridPos(coords);
+					float el = Float.parseFloat(greenFFT[e].toString()); 
+					gFFT = append(gFFT, el);
+	
+				}
+				
+				for (int e=0;e<=gFFT.length-1;e++) {
+					
+					// int elem = (int) gridElementFromFFT(gFFT[e]);
+					int[] coords = coordsFromElement((int) gFFT[e]);
+					noStroke();
+					drawRect(coords);
 					
 				}
-				println("green OUT");
+				//println("green OUT");
+				startGreenFFT = millis();
 				isGreenFFT = false;
 			}
+		}
+		
+		if (isBlueFFT) {
+			
+			if ( now >= startBlueFFT + deltaBlueFFT) {
+				
+				if (countBlueFFT >= blueFFT.length-1) {
+					
+					isBlueFFT = false;
+					countBlueFFT = 0;
+					
+				} else {
+					
+					// do something :D
+					if (ccount == 0) {
+						
+						int[] coords = coordsFromElement((int) Float.parseFloat(blueFFT[countBlueFFT].toString())); 
+						println("Aggiungo un cerchio in "+coords[0]+" - "+coords[1]);	
+						cerchi[ccount] = new Cerchio((grid.gridXstep * coords[0]) + borderX, (grid.gridYstep * coords[1]) + borderY, random(50) + 80, this);
+						cerchi[ccount].show();
+						ccount += 1;
+						
+					} if ( ccount >= cerchi.length-1) { 
+					
+						for (int i=0;i<=ccount-2;i++) {
+							
+							stroke(cerchi[i].colore);
+						    line(cerchi[i].posX, cerchi[i].posY, cerchi[i+1].posX, cerchi[i+1].posY);
+							
+						}
+						// println("no more circles");
+						ccount = 0;
+						
+					} else {
+						
+						int[] coords = coordsFromElement((int) Float.parseFloat(blueFFT[countBlueFFT].toString())); 
+						println("Aggiungo un cerchio in "+coords[0]+" - "+coords[1]);	
+						cerchi[ccount] = new Cerchio((grid.gridXstep * coords[0]) + borderX, (grid.gridYstep * coords[1]) + borderY, random(50) + 20, this);
+						cerchi[ccount].show();
+						ccount += 1;
+						
+					}
+					
+					countBlueFFT += 1;
+					
+				}
+				
+			}
+			
 		}
 		 
 		} // isStarted - Used to start manually the application and synchronize video capture and audio
@@ -349,7 +415,7 @@ public class ImageGrid extends PApplet {
 	void drawRect(int[] coords) {
 		
 		rectMode(CORNER);
-		fill(random(80), random(255), random(255), random(255));
+		fill(random(255), random(30));
 		rect((grid.gridXstep * coords[0]) + borderX, (grid.gridYstep * coords[1]) + borderY, grid.gridXstep, grid.gridYstep);
 		
 	}
@@ -492,7 +558,7 @@ public class ImageGrid extends PApplet {
 	 * */
 	void sendColor(float freq, int colore) {
 		OscMessage redmess;
-		println("frequenza inviata: "+freq);
+		// println("frequenza inviata: "+freq);
 		switch (colore) {
 		case 1:
 			redmess = new OscMessage("/redNote");
@@ -553,9 +619,7 @@ public class ImageGrid extends PApplet {
 		    isRedFFT = true;
 		    startRedFFT = millis();
 		    countRedFFT = 0;
-		    
-		    // int lungo = redFFT.length;
-		    // println("Received FFT "+redFFT[(int)random((float)lungo)]+" - length: "+lungo);
+
 		    return;
 		    
 		}
@@ -569,7 +633,7 @@ public class ImageGrid extends PApplet {
 			return;
 			
 		}
-		if (incomingOscMessage.checkAddrPattern("/blueFFF")==true) {
+		if (incomingOscMessage.checkAddrPattern("/blueFFT")==true) {
 			
 			blueFFT = incomingOscMessage.arguments();
 			isBlueFFT = true;
