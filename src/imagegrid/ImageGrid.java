@@ -74,10 +74,7 @@ public class ImageGrid extends PApplet {
 	boolean chcol = false;
 	
 	public void setup() {
-		
-		
-		
-		
+
 		isStarted = false;
 		isRedFFT = false;
 		
@@ -268,12 +265,12 @@ public class ImageGrid extends PApplet {
 					if (ccount == 0) {
 						
 						int[] coords = coordsFromElement((int) Float.parseFloat(blueFFT[countBlueFFT].toString())); 
-						println("Aggiungo un cerchio in "+coords[0]+" - "+coords[1]);	
+						// println("Aggiungo un cerchio in "+coords[0]+" - "+coords[1]);	
 						cerchi[ccount] = new Cerchio((grid.gridXstep * coords[0]) + borderX, (grid.gridYstep * coords[1]) + borderY, random(50) + 80, this);
 						cerchi[ccount].show();
 						ccount += 1;
 						
-					} if ( ccount >= cerchi.length-1) { 
+					} else if ( ccount >= cerchi.length-1) { 
 					
 						for (int i=0;i<=ccount-2;i++) {
 							
@@ -287,7 +284,7 @@ public class ImageGrid extends PApplet {
 					} else {
 						
 						int[] coords = coordsFromElement((int) Float.parseFloat(blueFFT[countBlueFFT].toString())); 
-						println("Aggiungo un cerchio in "+coords[0]+" - "+coords[1]);	
+						//println("Aggiungo un cerchio in "+coords[0]+" - "+coords[1]);	
 						cerchi[ccount] = new Cerchio((grid.gridXstep * coords[0]) + borderX, (grid.gridYstep * coords[1]) + borderY, random(50) + 20, this);
 						cerchi[ccount].show();
 						ccount += 1;
@@ -718,5 +715,4 @@ public class ImageGrid extends PApplet {
 		PApplet.main(new String[] { "--present", imagegrid.ImageGrid.class.getName() });
 		
 	}
-	
 }

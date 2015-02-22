@@ -3,3 +3,4 @@ data/data/*
 .settings/
 bin
 src/data/*
+application*
