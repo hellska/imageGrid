@@ -525,19 +525,20 @@ public class ImageGrid extends PApplet {
 	
 	/** return one color value of a single pixel, color value in RGB color mode */
 	float pixelColor(int colore, int pixel) {
-		img.loadPixels();
+		
+		this.loadPixels();
 		// int pixel = (int)random(img.pixels.length);
 		float pixelCol = 0;
 		
 		switch (colore){
 		case 1:
-			pixelCol = red(img.pixels[pixel]);
+			pixelCol = red(this.pixels[pixel]);
 			break;
 		case 2:
-			pixelCol = green(img.pixels[pixel]);
+			pixelCol = green(this.pixels[pixel]);
 			break;
 		case 3:
-			pixelCol = blue(img.pixels[pixel]);
+			pixelCol = blue(this.pixels[pixel]);
 			break;
 		}
 		
@@ -617,12 +618,13 @@ public class ImageGrid extends PApplet {
 		}
 		if (incomingOscMessage.checkAddrPattern("/redFFT")==true) {
 			
-			// Set the global variables
-		    redFFT = incomingOscMessage.arguments();
-		    isRedFFT = true;
-		    startRedFFT = millis();
-		    countRedFFT = 0;
-
+			if (!isRedFFT) {
+				// Set the global variables
+				redFFT = incomingOscMessage.arguments();
+				isRedFFT = true;
+				startRedFFT = millis();
+				countRedFFT = 0;
+			}
 		    return;
 		    
 		}
