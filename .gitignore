@@ -4,3 +4,4 @@ data/data/*
 bin
 src/data/*
 application*
+saved_frames/*

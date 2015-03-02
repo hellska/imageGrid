@@ -20,7 +20,7 @@ public class ImageGrid extends PApplet {
 	// cols > rows
 	int rows = 10;
 	int cols = 10;
-	int imgNum = 5;
+	int imgNum = 15;
 	int currImg = 0;
 	int drawmode = 0;
 	
@@ -73,12 +73,16 @@ public class ImageGrid extends PApplet {
 	int currentPointer = 0;
 	boolean chcol = false;
 	
+	// picture fade control
+	boolean isFade;
+	int fadeTime, startFade;
+	
 	public void setup() {
 
 		isStarted = false;
 		isRedFFT = false;
 		
-		frameRate(25);
+		frameRate(12); // we can change the frame rate according to our needs
 		//size(1440,830, P2D);
 		size(1440,900, P2D);
 		// size(1840,870, P2D);
@@ -136,172 +140,185 @@ public class ImageGrid extends PApplet {
 		// set the network array of object Cerchio
 		cerchi = new Cerchio[cols * rows];
 		
+		isFade = false;
+		fadeTime = 500;
+		
 	}
 
 	public void draw() {
 		
 		if (isStarted) {
 			
-		int now = millis();
-		
-		switch(drawmode) {
-		case 0:
-			drawGridPos();
-			elNo = 0;
-			break;
-		case 1:
-			collageGrid();
-			elNo = 0;
-			break;
-		case 2:
-			// startFrame = this.frameCount;
-			restoreImageGrid(elNo);
-			if (elNo >= grid.elements - 1) {
-				elNo = 0;
-				drawmode = 0;
+			if (isFade) {
+				
+				int now = millis();
+				if (now <= startFade+fadeTime) {
+					fadeToBlack();
+					startFade = millis();
+				}
+				
 			} else {
-				elNo = elNo + 1;
-				startFrame = this.frameCount;
-			}
-			break;
-		}
-		
-		if (now >= startTred+deltaTred) {
-			
-			int pixel = (int)random(img.pixels.length);
-			float newCol = pixelColor(1, pixel);
-			//println("invio rosso: "+newCol);
-			sendColor(newCol, 1);
-			startTred = millis();
-			
-		}
-		
-		if (now >= startGreen+deltaTgreen) {
-			
-			int pixel = (int)random(img.pixels.length);
-			float newCol = pixelColor(2, pixel); 
-			//println("invio verde: "+newCol);
-			sendColor(newCol, 2);
-			startGreen = millis();
-			
-		}
-		
-		 if (now >= startTblue+deltaTblue) {
-		    
-			int pixel = (int)random(img.pixels.length);
-			float newCol = pixelColor(3, pixel);
-			//println("invio blu: "+newCol);
-			sendColor(newCol, 3);
-			startTblue = millis();
-			
-		}
-		 
-		if (isRedFFT) {
-			
-			if (now >= startRedFFT+deltaRedFFT) {
+
+				int now = millis();
 				
-				if (countRedFFT >= redFFT.length-1 ) {
-					
-					isRedFFT = false;
-					//println("Fine elaborazione array redFFT");
-					
-				} else {
-					
-					startRedFFT = millis();
-					countRedFFT += 1;
-					float el = gridElementFromFFT(redFFT[countRedFFT]);
-					int elem = (int)el - 1;
-					// int[] coords = new int[0];
-					int[] coords = coordsFromElement(elem);
-					collageGridPos(coords);
-					
-					// println("Elemento Corrente: "+counterFFT);
-					
-				}
-			}
-		}
-		
-		if (isGreenFFT) {
-			
-			if ( now >= startGreenFFT + deltaGreenFFT) {
-				
-				float[] gFFT = new float[0];
-				//println("green IN");
-				
-				// create an array of float from an array of object
-				for (int e=0;e<=greenFFT.length-1;e++) {
-					
-					float el = Float.parseFloat(greenFFT[e].toString()); 
-					gFFT = append(gFFT, el);
-	
+				switch(drawmode) {
+				case 0:
+					drawGridPos();
+					elNo = 0;
+					break;
+				case 1:
+					collageGrid();
+					elNo = 0;
+					break;
+				case 2:
+					// startFrame = this.frameCount;
+					restoreImageGrid(elNo);
+					if (elNo >= grid.elements - 1) {
+						elNo = 0;
+						drawmode = 0;
+					} else {
+						elNo = elNo + 1;
+						startFrame = this.frameCount;
+					}
+					break;
 				}
 				
-				for (int e=0;e<=gFFT.length-1;e++) {
+				if (now >= startTred+deltaTred) {
 					
-					// int elem = (int) gridElementFromFFT(gFFT[e]);
-					int[] coords = coordsFromElement((int) gFFT[e]);
-					noStroke();
-					drawRect(coords);
+					int pixel = (int)random(img.pixels.length);
+					float newCol = pixelColor(1, pixel);
+					//println("invio rosso: "+newCol);
+					sendColor(newCol, 1);
+					startTred = millis();
 					
 				}
-				//println("green OUT");
-				startGreenFFT = millis();
-				isGreenFFT = false;
-			}
-		}
-		
-		if (isBlueFFT) {
-			
-			if ( now >= startBlueFFT + deltaBlueFFT) {
 				
-				if (countBlueFFT >= blueFFT.length-1) {
+				if (now >= startGreen+deltaTgreen) {
 					
-					isBlueFFT = false;
-					countBlueFFT = 0;
+					int pixel = (int)random(img.pixels.length);
+					float newCol = pixelColor(2, pixel); 
+					//println("invio verde: "+newCol);
+					sendColor(newCol, 2);
+					startGreen = millis();
 					
-				} else {
+				}
+				
+				 if (now >= startTblue+deltaTblue) {
+				    
+					int pixel = (int)random(img.pixels.length);
+					float newCol = pixelColor(3, pixel);
+					//println("invio blu: "+newCol);
+					sendColor(newCol, 3);
+					startTblue = millis();
 					
-					// do something :D
-					if (ccount == 0) {
+				}
+				 
+				if (isRedFFT) {
+					
+					if (now >= startRedFFT+deltaRedFFT) {
 						
-						int[] coords = coordsFromElement((int) Float.parseFloat(blueFFT[countBlueFFT].toString())); 
-						// println("Aggiungo un cerchio in "+coords[0]+" - "+coords[1]);	
-						cerchi[ccount] = new Cerchio((grid.gridXstep * coords[0]) + borderX, (grid.gridYstep * coords[1]) + borderY, random(50) + 80, this);
-						cerchi[ccount].show();
-						ccount += 1;
-						
-					} else if ( ccount >= cerchi.length-1) { 
-					
-						for (int i=0;i<=ccount-2;i++) {
+						if (countRedFFT >= redFFT.length-1 ) {
 							
-							stroke(cerchi[i].colore);
-						    line(cerchi[i].posX, cerchi[i].posY, cerchi[i+1].posX, cerchi[i+1].posY);
+							isRedFFT = false;
+							//println("Fine elaborazione array redFFT");
+							
+						} else {
+							
+							startRedFFT = millis();
+							countRedFFT += 1;
+							float el = gridElementFromFFT(redFFT[countRedFFT]);
+							int elem = (int)el - 1;
+							// int[] coords = new int[0];
+							int[] coords = coordsFromElement(elem);
+							collageGridPos(coords);
+							
+							// println("Elemento Corrente: "+counterFFT);
 							
 						}
-						// println("no more circles");
-						ccount = 0;
+					}
+				}
+				
+				if (isGreenFFT) {
+					
+					if ( now >= startGreenFFT + deltaGreenFFT) {
 						
-					} else {
+						float[] gFFT = new float[0];
+						//println("green IN");
 						
-						int[] coords = coordsFromElement((int) Float.parseFloat(blueFFT[countBlueFFT].toString())); 
-						//println("Aggiungo un cerchio in "+coords[0]+" - "+coords[1]);	
-						cerchi[ccount] = new Cerchio((grid.gridXstep * coords[0]) + borderX, (grid.gridYstep * coords[1]) + borderY, random(50) + 20, this);
-						cerchi[ccount].show();
-						ccount += 1;
+						// create an array of float from an array of object
+						for (int e=0;e<=greenFFT.length-1;e++) {
+							
+							float el = Float.parseFloat(greenFFT[e].toString()); 
+							gFFT = append(gFFT, el);
+			
+						}
+						
+						for (int e=0;e<=gFFT.length-1;e++) {
+							
+							// int elem = (int) gridElementFromFFT(gFFT[e]);
+							int[] coords = coordsFromElement((int) gFFT[e]);
+							noStroke();
+							drawRect(coords);
+							
+						}
+						//println("green OUT");
+						startGreenFFT = millis();
+						isGreenFFT = false;
+					}
+				}
+				
+				if (isBlueFFT) {
+					
+					if ( now >= startBlueFFT + deltaBlueFFT) {
+						
+						if (countBlueFFT >= blueFFT.length-1) {
+							
+							isBlueFFT = false;
+							countBlueFFT = 0;
+							
+						} else {
+							
+							// do something :D
+							if (ccount == 0) {
+								
+								int[] coords = coordsFromElement((int) Float.parseFloat(blueFFT[countBlueFFT].toString())); 
+								// println("Aggiungo un cerchio in "+coords[0]+" - "+coords[1]);	
+								cerchi[ccount] = new Cerchio((grid.gridXstep * coords[0]) + borderX, (grid.gridYstep * coords[1]) + borderY, random(50) + 80, this);
+								cerchi[ccount].show();
+								ccount += 1;
+								
+							} else if ( ccount >= cerchi.length-1) { 
+							
+								for (int i=0;i<=ccount-2;i++) {
+									
+									stroke(cerchi[i].colore);
+								    line(cerchi[i].posX, cerchi[i].posY, cerchi[i+1].posX, cerchi[i+1].posY);
+									
+								}
+								// println("no more circles");
+								ccount = 0;
+								
+							} else {
+								
+								int[] coords = coordsFromElement((int) Float.parseFloat(blueFFT[countBlueFFT].toString())); 
+								//println("Aggiungo un cerchio in "+coords[0]+" - "+coords[1]);	
+								cerchi[ccount] = new Cerchio((grid.gridXstep * coords[0]) + borderX, (grid.gridYstep * coords[1]) + borderY, random(50) + 20, this);
+								cerchi[ccount].show();
+								ccount += 1;
+								
+							}
+							
+							countBlueFFT += 1;
+							
+						}
 						
 					}
 					
-					countBlueFFT += 1;
-					
 				}
-				
 			}
-			
-		}
-		 
 		} // isStarted - Used to start manually the application and synchronize video capture and audio
 		
-	}
+	} // end draw()
 	
 	/** draw a grid over the image area */
 	void imageGrid() {
@@ -554,6 +571,13 @@ public class ImageGrid extends PApplet {
 		
 	}
 	
+	void fadeToBlack() {
+		
+		fill(0, 20);
+		rect(0,  0, this.width, this.height);
+		
+	}
+	
 	//////////////// O S C   M E T H O D S //
 	
 	/** 
@@ -707,6 +731,18 @@ public class ImageGrid extends PApplet {
 		}
 		if (key == 'c') {
 			coordsFromElement(30);
+		}
+		if (key == 'i' ) {
+			saveFrame("./saved_frames/imangeGrid-######.png");
+		}
+		if (key == 'f') {
+			
+			if (isFade) {
+				isFade = false;
+			} else {
+				isFade = true;
+				startFade = millis();
+			}
 		}
 		
 	}
