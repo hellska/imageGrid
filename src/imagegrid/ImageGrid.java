@@ -77,6 +77,12 @@ public class ImageGrid extends PApplet {
 	boolean isFade;
 	int fadeTime, startFade;
 	
+	// automati screenshot creations
+	int screenshot = 5000;
+	int startscreenshot;
+	int randimgstart;
+	int randimgdelta = 250000;
+	
 	public void setup() {
 
 		isStarted = false;
@@ -143,23 +149,39 @@ public class ImageGrid extends PApplet {
 		isFade = false;
 		fadeTime = 500;
 		
+		startscreenshot = millis();
+		randimgstart = millis();
+		
 	}
 
 	public void draw() {
 		
 		if (isStarted) {
 			
+			int now = millis();
+			
+			// automatic change of image
+			if (now >= randimgstart+randimgdelta) {
+				this.background(0);
+				randomImage();
+				randimgstart = millis();
+				println("change img");
+			}
+			
+			if (now >= screenshot+startscreenshot) {
+				saveFrame("./saved_frames/imangeGrid-######.png");
+				startscreenshot = millis();
+				println("screenshot");
+			}
+			
 			if (isFade) {
 				
-				int now = millis();
-				if (now <= startFade+fadeTime) {
+				if (now >= startFade+fadeTime) {
 					fadeToBlack();
 					startFade = millis();
 				}
 				
 			} else {
-
-				int now = millis();
 				
 				switch(drawmode) {
 				case 0:
