@@ -78,10 +78,11 @@ public class ImageGrid extends PApplet {
 	int fadeTime, startFade;
 	
 	// automati screenshot creations
-	int screenshot = 5000;
+	int numScreenshot = 15; // number of screenshots per image
+	int screenshot = 15000;
 	int startscreenshot;
 	int randimgstart;
-	int randimgdelta = 250000;
+	int randimgdelta = screenshot * numScreenshot;
 	
 	public void setup() {
 
@@ -156,22 +157,34 @@ public class ImageGrid extends PApplet {
 
 	public void draw() {
 		
-		if (isStarted) {
+	//	if (isStarted) {
 			
 			int now = millis();
 			
 			// automatic change of image
 			if (now >= randimgstart+randimgdelta) {
-				this.background(0);
-				randomImage();
-				randimgstart = millis();
-				println("change img");
+				
+				if (currImg >= imgNum - 1) {
+					// terminate the sketch
+					this.exit();
+					
+				} else {
+					
+					this.background(0);
+					currImg += 1;
+					chooseImage(currImg);
+					randimgstart = millis();
+					println("choose img "+currImg);
+					
+				}
+				
 			}
 			
 			if (now >= screenshot+startscreenshot) {
+				
 				saveFrame("./saved_frames/imangeGrid-######.png");
 				startscreenshot = millis();
-				println("screenshot");
+				
 			}
 			
 			if (isFade) {
@@ -340,7 +353,7 @@ public class ImageGrid extends PApplet {
 			}
 		} // isStarted - Used to start manually the application and synchronize video capture and audio
 		
-	} // end draw()
+	// } // end draw()
 	
 	/** draw a grid over the image area */
 	void imageGrid() {
@@ -379,6 +392,16 @@ public class ImageGrid extends PApplet {
 		
 		currImg = (int) random(imgList.length);
 		img = imgList[currImg].get(0, 0, imgList[currImg].width, imgList[currImg].height);
+		// change the current grid background
+		grid.image(img);
+		image(grid.immagine, borderX, borderY);
+		
+	}
+	
+	/** Select an image from the list */
+	void chooseImage(int imgNo) {
+		
+		img = imgList[imgNo].get(0, 0, imgList[imgNo].width, imgList[imgNo].height);
 		// change the current grid background
 		grid.image(img);
 		image(grid.immagine, borderX, borderY);
