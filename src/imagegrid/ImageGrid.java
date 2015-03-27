@@ -213,9 +213,9 @@ public class ImageGrid extends PApplet {
 					
 				}
 				 
-				if (isRedFFT) {
+				if (isRedFFT) { // substitute grid element with parts from other picture
 					
-					if (now >= startRedFFT+deltaRedFFT) {
+					if (now >= startRedFFT + deltaRedFFT) {
 						
 						if (countRedFFT >= redFFT.length-1 ) {
 							
@@ -238,7 +238,7 @@ public class ImageGrid extends PApplet {
 					}
 				}
 				
-				if (isGreenFFT) {
+				if (isGreenFFT) { // creates transparent veil over grid element
 					
 					if ( now >= startGreenFFT + deltaGreenFFT) {
 						
@@ -248,7 +248,7 @@ public class ImageGrid extends PApplet {
 						// create an array of float from an array of object
 						for (int e=0;e<=greenFFT.length-1;e++) {
 							
-							float el = Float.parseFloat(greenFFT[e].toString()); 
+							float el = Float.parseFloat(greenFFT[e].toString()) * (rows * cols); 
 							gFFT = append(gFFT, el);
 			
 						}
@@ -281,26 +281,30 @@ public class ImageGrid extends PApplet {
 							// do something :D
 							if (ccount == 0) {
 								
-								int[] coords = coordsFromElement((int) Float.parseFloat(blueFFT[countBlueFFT].toString())); 
+								float el = Float.parseFloat(blueFFT[countBlueFFT].toString()) * (rows * cols);
+								int[] coords = coordsFromElement((int) el); 
 								// println("Aggiungo un cerchio in "+coords[0]+" - "+coords[1]);	
 								cerchi[ccount] = new Cerchio((grid.gridXstep * coords[0]) + borderX, (grid.gridYstep * coords[1]) + borderY, random(50) + 80, this);
 								cerchi[ccount].show();
 								ccount += 1;
 								
 							} else if ( ccount >= cerchi.length-1) { 
-							
+								
+								/** modificare - connect each circle with all the others */
 								for (int i=0;i<=ccount-2;i++) {
 									
-									stroke(cerchi[i].colore);
-								    line(cerchi[i].posX, cerchi[i].posY, cerchi[i+1].posX, cerchi[i+1].posY);
+									stroke(cerchi[i].colore, random(30));
+									for (int n=0;n<=cerchi.length-2;n++) {
+										line(cerchi[i].posX, cerchi[i].posY, cerchi[n].posX, cerchi[n].posY);
+									}
 									
 								}
 								// println("no more circles");
 								ccount = 0;
 								
 							} else {
-								
-								int[] coords = coordsFromElement((int) Float.parseFloat(blueFFT[countBlueFFT].toString())); 
+								float el = Float.parseFloat(blueFFT[countBlueFFT].toString()) * (rows * cols);
+								int[] coords = coordsFromElement((int) el); 
 								//println("Aggiungo un cerchio in "+coords[0]+" - "+coords[1]);	
 								cerchi[ccount] = new Cerchio((grid.gridXstep * coords[0]) + borderX, (grid.gridYstep * coords[1]) + borderY, random(50) + 20, this);
 								cerchi[ccount].show();
@@ -654,6 +658,7 @@ public class ImageGrid extends PApplet {
 		}
 		if (incomingOscMessage.checkAddrPattern("/greenFFT")==true) {
 			
+			// the array content: 
 			greenFFT = incomingOscMessage.arguments();
 			isGreenFFT = true;
 			startGreenFFT = millis();
@@ -743,6 +748,34 @@ public class ImageGrid extends PApplet {
 				isFade = true;
 				startFade = millis();
 			}
+		}
+		if (key == 'p'){
+			
+			this.background(0);
+			
+			rows = (int) random(45) + 5;
+			cols = (int) random(45) + 5;
+			
+			if (cols < rows ) {
+				int tmp = rows;
+				rows = cols;
+				cols = tmp;
+			}
+
+			println("righe: "+rows+" - colonne: "+cols);
+			this.grid = new MyGrid(rows, cols, img);			
+			
+			this.gElement = new GridElement[rows*cols];
+			
+			for (int r=0;r<rows;r++) {
+				for (int c=0;c<cols;c++) {
+					this.gElement[r * c + c] = new GridElement((grid.gridXstep * r) + borderX, (grid.gridYstep * c) + borderY);
+				}
+			}
+			
+			randomImage();
+
+
 		}
 		
 	}
