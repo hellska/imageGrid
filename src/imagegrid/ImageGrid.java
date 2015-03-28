@@ -13,7 +13,7 @@ import oscP5.*;
 
 @SuppressWarnings("serial")
 public class ImageGrid extends PApplet {
-	
+
 //	Frame fullScreenFrame;
 	boolean isStarted;
 
@@ -60,7 +60,7 @@ public class ImageGrid extends PApplet {
 	int startRedFFT, startGreenFFT, startBlueFFT;
 	int deltaRedFFT = 300;
 	int deltaGreenFFT = 300;
-	int deltaBlueFFT = 25 * 5; // frames x seconds	
+	int deltaBlueFFT = 25 * 50; // frames x seconds	
 	
 	Object[] redFFT, greenFFT, blueFFT; 
 	
@@ -75,6 +75,9 @@ public class ImageGrid extends PApplet {
 	
 	// picture fade control
 	boolean isFade;
+	boolean fadeIn = false;
+	int fadeCount = 0;
+	int fadeSteps = 100;
 	int fadeTime, startFade;
 	
 	public void setup() {
@@ -149,18 +152,38 @@ public class ImageGrid extends PApplet {
 		
 		if (isStarted) {
 			
+			int now = millis();
+			
 			if (isFade) {
 				
-				int now = millis();
 				if (now <= startFade+fadeTime) {
+					
 					fadeToBlack();
 					startFade = millis();
+					fadeCount += 1;
+					if (fadeCount >= fadeSteps) {
+						
+						isFade = false;
+						fadeCount = 0;
+						
+						if (fadeIn == true) {
+							
+							fadeIn = false;
+							restartProcess();
+							
+						} else {
+							
+							fadeIn = true;
+							
+						}
+						
+					}
+					
 				}
-				
+
 			} else {
 
-				int now = millis();
-				
+				/*
 				switch(drawmode) {
 				case 0:
 					drawGridPos();
@@ -182,7 +205,9 @@ public class ImageGrid extends PApplet {
 					}
 					break;
 				}
+				*/
 				
+				/** send color to SuperCollider */
 				if (now >= startTred+deltaTred) {
 					
 					int pixel = (int)random(img.pixels.length);
@@ -193,11 +218,11 @@ public class ImageGrid extends PApplet {
 					
 				}
 				
+				/** send color to SuperCollider */
 				if (now >= startGreen+deltaTgreen) {
 					
 					int pixel = (int)random(img.pixels.length);
 					float newCol = pixelColor(2, pixel); 
-					//println("invio verde: "+newCol);
 					sendColor(newCol, 2);
 					startGreen = millis();
 					
@@ -207,7 +232,6 @@ public class ImageGrid extends PApplet {
 				    
 					int pixel = (int)random(img.pixels.length);
 					float newCol = pixelColor(3, pixel);
-					//println("invio blu: "+newCol);
 					sendColor(newCol, 3);
 					startTblue = millis();
 					
@@ -219,20 +243,15 @@ public class ImageGrid extends PApplet {
 						
 						if (countRedFFT >= redFFT.length-1 ) {
 							
-							isRedFFT = false;
-							//println("Fine elaborazione array redFFT");
+							resetRed();
 							
 						} else {
 							
-							startRedFFT = millis();
-							countRedFFT += 1;
-							float el = gridElementFromFFT(redFFT[countRedFFT]);
-							int elem = (int)el - 1;
-							// int[] coords = new int[0];
-							int[] coords = coordsFromElement(elem);
+							float el = Float.parseFloat(redFFT[countRedFFT].toString()) * (rows * cols);
+							int[] coords = coordsFromElement((int) el);
 							collageGridPos(coords);
-							
-							// println("Elemento Corrente: "+counterFFT);
+							countRedFFT += 1;
+							startRedFFT = millis();
 							
 						}
 					}
@@ -242,28 +261,21 @@ public class ImageGrid extends PApplet {
 					
 					if ( now >= startGreenFFT + deltaGreenFFT) {
 						
-						float[] gFFT = new float[0];
-						//println("green IN");
-						
-						// create an array of float from an array of object
-						for (int e=0;e<=greenFFT.length-1;e++) {
+						if (countGreenFFT >= greenFFT.length-1) {
+
+							resetGreen();
 							
-							float el = Float.parseFloat(greenFFT[e].toString()) * (rows * cols); 
-							gFFT = append(gFFT, el);
-			
-						}
-						
-						for (int e=0;e<=gFFT.length-1;e++) {
-							
-							// int elem = (int) gridElementFromFFT(gFFT[e]);
-							int[] coords = coordsFromElement((int) gFFT[e]);
+						} else {
+
+							// draw rect
+							float el = Float.parseFloat(greenFFT[countGreenFFT].toString()) * (rows * cols);
+							int[] coords = coordsFromElement((int) el);
 							noStroke();
 							drawRect(coords);
-							
+							countGreenFFT += 1;
+							startGreenFFT = millis();
+
 						}
-						//println("green OUT");
-						startGreenFFT = millis();
-						isGreenFFT = false;
 					}
 				}
 				
@@ -273,57 +285,55 @@ public class ImageGrid extends PApplet {
 						
 						if (countBlueFFT >= blueFFT.length-1) {
 							
-							isBlueFFT = false;
-							countBlueFFT = 0;
+							resetBlue();
 							
 						} else {
 							
-							// do something :D
 							if (ccount == 0) {
 								
 								float el = Float.parseFloat(blueFFT[countBlueFFT].toString()) * (rows * cols);
 								int[] coords = coordsFromElement((int) el); 
 								// println("Aggiungo un cerchio in "+coords[0]+" - "+coords[1]);	
-								cerchi[ccount] = new Cerchio((grid.gridXstep * coords[0]) + borderX, (grid.gridYstep * coords[1]) + borderY, random(50) + 80, this);
+								cerchi[ccount] = new Cerchio((grid.gridXstep * coords[0] + random(grid.gridXstep/2) ) + borderX, (grid.gridYstep * coords[1] + random(grid.gridYstep/2)) + borderY, random(50) + 20, this);
 								cerchi[ccount].show();
 								ccount += 1;
+
+							} else if ( ccount <= cerchi.length-1) {
 								
-							} else if ( ccount >= cerchi.length-1) { 
-								
-								/** modificare - connect each circle with all the others */
-								for (int i=0;i<=ccount-2;i++) {
-									
-									stroke(cerchi[i].colore, random(30));
-									for (int n=0;n<=cerchi.length-2;n++) {
-										line(cerchi[i].posX, cerchi[i].posY, cerchi[n].posX, cerchi[n].posY);
-									}
-									
-								}
-								// println("no more circles");
-								ccount = 0;
-								
-							} else {
 								float el = Float.parseFloat(blueFFT[countBlueFFT].toString()) * (rows * cols);
 								int[] coords = coordsFromElement((int) el); 
 								//println("Aggiungo un cerchio in "+coords[0]+" - "+coords[1]);	
-								cerchi[ccount] = new Cerchio((grid.gridXstep * coords[0]) + borderX, (grid.gridYstep * coords[1]) + borderY, random(50) + 20, this);
+								cerchi[ccount] = new Cerchio((grid.gridXstep * coords[0] + random(grid.gridXstep/2) ) + borderX, (grid.gridYstep * coords[1] + random(grid.gridYstep/2)) + borderY, random(50) + 20, this);
 								cerchi[ccount].show();
-								ccount += 1;
+								
+								// connect each circle with the precedent one
+								smooth();
+								stroke(255, random(60) + 30);
+								line(cerchi[ccount].posX, cerchi[ccount].posY, cerchi[ccount-1].posX, cerchi[ccount-1].posY);
+								// reset the counter
+								if (ccount == cerchi.length-1) {
+								
+									ccount = 0;
+									isBlueFFT = false;
+									
+								} else {
+									
+									ccount += 1;
+									
+								}
 								
 							}
 							
 							countBlueFFT += 1;
+							startBlueFFT = millis();
 							
-						}
-						
+						}	
 					}
-					
-				}
-			}
+				} // blue picture manipulation
+			} // fade or not to fade
 		} // isStarted - Used to start manually the application and synchronize video capture and audio
-		
 	} // end draw()
-	
+
 	/** draw a grid over the image area */
 	void imageGrid() {
 		
@@ -575,10 +585,36 @@ public class ImageGrid extends PApplet {
 		
 	}
 	
+	/** creates a fade effect (use 25 or more time to get the fade) */
 	void fadeToBlack() {
 		
-		fill(0, 20);
+		noStroke();
+		fill(0, 10);
+		rectMode(CORNER);
 		rect(0,  0, this.width, this.height);
+		
+	}
+	/** tree functions to reset the picture menipulation process */
+	void resetRed() {
+		
+		isRedFFT = false;
+		countRedFFT = 0;
+		startRedFFT = millis();
+		
+	}
+	void resetGreen() {
+		
+		startGreenFFT = millis();
+		isGreenFFT = false;
+		countGreenFFT = 0;
+		
+	}
+	void resetBlue() {
+		
+		isBlueFFT = false;
+		countBlueFFT = 0;
+		startBlueFFT = millis();
+		ccount = 0;
 		
 	}
 	
@@ -677,6 +713,39 @@ public class ImageGrid extends PApplet {
 		}
 	}
 	
+	void restartProcess() {
+		
+		this.background(0);
+		
+		rows = (int) random(45) + 5;
+		cols = (int) random(45) + 5;
+		
+		if (cols < rows ) {
+			int tmp = rows;
+			rows = cols;
+			cols = tmp;
+		}
+
+		this.grid = new MyGrid(rows, cols, img);			
+		this.gElement = new GridElement[rows*cols];
+		this.cerchi = new Cerchio[cols * rows];
+		
+		this.resetRed();
+		this.resetGreen();
+		this.resetBlue();
+		
+		for (int r=0;r<rows;r++) {
+			for (int c=0;c<cols;c++) {
+				this.gElement[r * c + c] = new GridElement((grid.gridXstep * r) + borderX, (grid.gridYstep * c) + borderY);
+			}
+		}
+		
+		randomImage();
+		int gel = rows * cols;
+		println("righe: "+rows+" - colonne: "+cols+" - grid elem: "+gel);
+		println("Number of circles: "+cerchi.length);
+		
+	}
 	//////////////// P U B L I C   M E T H O D S //
 	
 	/** Change the current image
@@ -742,6 +811,7 @@ public class ImageGrid extends PApplet {
 		}
 		if (key == 'f') {
 			
+			// this code will become a transformation function depending on internal timing
 			if (isFade) {
 				isFade = false;
 			} else {
@@ -751,6 +821,7 @@ public class ImageGrid extends PApplet {
 		}
 		if (key == 'p'){
 			
+			// this code will become a transformation function depending on internal timing
 			this.background(0);
 			
 			rows = (int) random(45) + 5;
@@ -762,10 +833,13 @@ public class ImageGrid extends PApplet {
 				cols = tmp;
 			}
 
-			println("righe: "+rows+" - colonne: "+cols);
 			this.grid = new MyGrid(rows, cols, img);			
-			
 			this.gElement = new GridElement[rows*cols];
+			this.cerchi = new Cerchio[cols * rows];
+			
+			this.resetRed();
+			this.resetGreen();
+			this.resetBlue();
 			
 			for (int r=0;r<rows;r++) {
 				for (int c=0;c<cols;c++) {
@@ -774,7 +848,9 @@ public class ImageGrid extends PApplet {
 			}
 			
 			randomImage();
-
+			int gel = rows * cols;
+			println("righe: "+rows+" - colonne: "+cols+" - grid elem: "+gel);
+			println("Number of circles: "+cerchi.length);
 
 		}
 		
