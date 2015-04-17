@@ -20,7 +20,7 @@ public class MyGrid extends PApplet{
 		this.cols = c;
 		this.elements = r * c;
 		this.gridXstep  = floor(img.width / this.cols);
-		this.gridYstep = floor(img.height / rows);
+		this.gridYstep = floor(img.height / this.rows);
 		this.immagine = img.get(0, 0, img.width, img.height);
 		
 		this.gridPosStatus = new boolean[r*c];
