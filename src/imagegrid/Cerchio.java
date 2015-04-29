@@ -15,7 +15,7 @@ public class Cerchio {
 	        radA = rad1;
 	        radB = -1;
 	        crc = true;
-	        colore = parent.color(255, 20);
+	        colore = parent.color(255, 30);
 	    }
 	    public void show() {
 	      if (radB == -1) {
