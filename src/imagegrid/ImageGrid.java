@@ -1,6 +1,7 @@
 package imagegrid;
 
 import java.io.File;
+
 // import java.awt.Frame;
 import netP5.NetAddress;
 import processing.core.PApplet;
@@ -14,7 +15,7 @@ import oscP5.*;
 
 @SuppressWarnings("serial")
 public class ImageGrid extends PApplet {
-
+    
 //	Frame fullScreenFrame;
 	boolean isStarted;
 
@@ -41,6 +42,8 @@ public class ImageGrid extends PApplet {
 	PImage img;
 	PImage partImg;
 
+	int minborder; // bordo minimo in pixel in caso di resize
+	
 	float[] pixelColors;
 
 	OscP5 oscP5;
@@ -57,8 +60,8 @@ public class ImageGrid extends PApplet {
 	int deltaTgreen = 12000;
 
 	int startRedFFT, startGreenFFT, startBlueFFT;
-	int deltaRedFFT = 300;
-	int deltaGreenFFT = 300;
+	int deltaRedFFT = 3000;
+	int deltaGreenFFT = 3000;
 	int deltaBlueFFT = 25 * 50; // frames x seconds	
 
 	Object[] redFFT, greenFFT, blueFFT; 
@@ -85,23 +88,35 @@ public class ImageGrid extends PApplet {
 	IntList imageElementsTrans;
 	int startTrans, stepTrans, elementTrans, sizeTrans, countTrans, transImgNu;
 	
-	public void setup() {
-
+	public void setup() {		
+		
 		isStarted = false;
 		isRedFFT = false;
 
 		frameRate(12); // we can change the frame rate according to our needs
-		//size(1440,830, P2D);
-		size(1440,900, P2D);
-		// size(1840,870, P2D);
+		// size(1440,830, P2D);
+		// size(1440,900, P2D);
+		// minborder = 100;
+		// size(1024,768, P2D);
+		size(800,600, P2D);
+		minborder = 30;
+		// size(400, 300, P2D);
+		// minborder = 20;
+		// set the border accordingly to frame size
+		
+		 
+//		frame.setLocation(0,0);
+//		frame.setUndecorated(true);
 
 		elNo = 0;
 		frameStep = 1;
  
+		// Inserire una funzione per la lettura di una cartella!!!
 		/** image file selection read */
 		this.imgList = new PImage[imgNum];
 		for (int i=0; i<imgNum; i++) {
 			imgList[i] = loadImage("wood_dumb_"+i+".png");
+			imgList[i] = resizeImage(imgList[i]);
 		}
 
 		currImg = (int) random(imgList.length);
@@ -125,7 +140,7 @@ public class ImageGrid extends PApplet {
 		image(img, borderX, borderY);
 
 		this.pixelColors = readPixelColorColumn(1);
-		println("Array size: "+pixelColors.length+" - sample: "+pixelColors[500]);
+		println("Array size: "+pixelColors.length+" - sample: "+pixelColors[1]);
 
 		// set OSC communication sender and receiver
 		oscP5 = new OscP5(this, 12000);
@@ -413,6 +428,31 @@ public class ImageGrid extends PApplet {
 		} // isStarted - Used to start manually the application and synchronize video capture and audio
 	} // end draw()
 
+	/** Resize image accordingly with canvas size maintaining proportion */
+	PImage resizeImage(PImage iimg) {
+		  float resRatio, imgDimRatio;
+		  int resX, resY;
+		  imgDimRatio = width/height;
+		  if (iimg.height<iimg.width) {
+
+		    resRatio = (float) iimg.width / iimg.height;
+		    if (resRatio<imgDimRatio) {
+		    	resX = width - minborder; // cut the border
+		    	resY = (int) floor(resX / resRatio);
+		    } else {
+		    	resY = height - minborder;
+		    	resX = (int) floor(resY * resRatio);
+		    }
+		  } else { 
+		    resRatio = (float) iimg.height / iimg.width;
+		    resY = height - minborder; // cut the border
+		    resX = (int) floor(resY / resRatio);
+		  };
+		  
+		  println("larghezza: "+resX+" - altezza: "+resY);
+		  iimg.resize(resX, resY);
+		  return iimg;
+	}
 	/** draw a grid over the image area */
 	void imageGrid() {
 		
@@ -505,11 +545,6 @@ public class ImageGrid extends PApplet {
 		coords[2] = 255;
 		return coords;
 		
-	}
-	
-	/** not implemented yet */
-	void gridToPixel(int row, int col, MyGrid gr) {
-		// Implement this method
 	}
 	
 	/** draw a random colored rectangle over a specific grid element */ 
@@ -841,12 +876,10 @@ public class ImageGrid extends PApplet {
 	 * convenience method to manual test the application
 	 *  */
 	public void mouseClicked() {
-		
 		// randomImage();
 		// println("Mouse click disabled!");
 		int[] coords = gridPos();
 		println("Coord x: "+coords[0]+" - y: "+coords[1]);
-		
 	}	
 	
 	/** change the draw mode with keyboard */
@@ -940,11 +973,25 @@ public class ImageGrid extends PApplet {
 
 	}
 
+	/** This function set the frame caracteristics */
+	public void init(){
+        if(frame!=null){
+          frame.removeNotify();//make the frame not displayable
+          frame.setResizable(false);
+          frame.setUndecorated(true);
+          println("frame is at "+frame.getLocation());
+          frame.addNotify();
+        }
+      super.init();
+	}
+	
 	/** program entry point */
 	public static void main(String args[]) {
 
-		PApplet.main(new String[] { "--present", imagegrid.ImageGrid.class.getName() });
+
+		// PApplet.main(new String[] { "--present", imagegrid.ImageGrid.class.getName() });
 		// PApplet.main(new String[] {imagegrid.ImageGrid.class.getName()} );
+		PApplet.main(new String[] {"--hide-stop", imagegrid.ImageGrid.class.getName()});
 
 	}
 }

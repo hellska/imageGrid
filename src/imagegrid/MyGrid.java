@@ -22,7 +22,7 @@ public class MyGrid extends PApplet{
 		this.gridXstep  = floor(img.width / c);
 		this.gridYstep = floor(img.height / r);
 		this.immagine = img.get(0, 0, img.width, img.height);
-		
+
 		this.gridPosStatus = new boolean[r*c];
 		for (int i=0;i < this.gridPosStatus.length;i++) {
 			this.gridPosStatus[i] = false;
@@ -34,5 +34,4 @@ public class MyGrid extends PApplet{
 		this.immagine = img;
 		
 	}
-
 }
