@@ -42,6 +42,8 @@ public class ImageGrid extends PApplet {
 	PImage img;
 	PImage partImg;
 
+	String imgpath;
+	
 	int minborder; // bordo minimo in pixel in caso di resize
 	
 	float[] pixelColors;
@@ -93,12 +95,12 @@ public class ImageGrid extends PApplet {
 		isStarted = false;
 		isRedFFT = false;
 
-		frameRate(12); // we can change the frame rate according to our needs
+		frameRate(12); // change the frame to speed up the process
 		// size(1440,830, P2D);
 		// size(1440,900, P2D);
 		// minborder = 100;
 		// size(1024,768, P2D);
-		size(800,600, P2D);
+		size(1024,700, P2D);
 		minborder = 30;
 		// size(400, 300, P2D);
 		// minborder = 20;
@@ -112,13 +114,37 @@ public class ImageGrid extends PApplet {
 		frameStep = 1;
  
 		// Inserire una funzione per la lettura di una cartella!!!
+		//imgpath = "/Users/hellska/Pictures/data/";
+		//imgpath = "/Users/hellska/Pictures/akira/";
+		imgpath = "./data/";
+		  // filename = "PassportDanieleScarano.jpg";
+		  dir = new File(imgpath);
+		  // list dir content
+		  String[] list = dir.list();
+		  if (list == null) {
+		    println("Folder does not exist or cannot be accessed.");
+		  } else {
+		    imgNum = list.length;
+		    imgList = new PImage[imgNum];
+		    for (int i=0; i<list.length; i++) {  
+		    // Get filename of file or directory
+		      String filen = list[i];
+		      println(list[i]);
+		      imgList[i] = loadImage(imgpath+filen);
+		      imgList[i] = resizeImage(imgList[i]);
+		    }
+		    
+		    println(imgNum);
+		  }
+		
 		/** image file selection read */
+		  /*  
 		this.imgList = new PImage[imgNum];
 		for (int i=0; i<imgNum; i++) {
 			imgList[i] = loadImage("wood_dumb_"+i+".png");
 			imgList[i] = resizeImage(imgList[i]);
 		}
-
+		*/
 		currImg = (int) random(imgList.length);
 		
 		// use fixed image for testing
@@ -181,12 +207,14 @@ public class ImageGrid extends PApplet {
 			int now = millis();
 			
 			/** print out screenshots each deltaScreeshot (default 5000msec) */
+			/*
 			if (now >= startScreenshot+deltaScreenshot) {
 				
 				saveFrame("/Volumes/ssdData/saved_frames/imangeGrid-######.png");
 				startScreenshot = millis();
 				
 			}
+			*/
 
 			if (isFade) {
 
@@ -367,6 +395,8 @@ public class ImageGrid extends PApplet {
 								}
 								// cerchi[ccount] = new Cerchio((grid.gridXstep * (coords[0]-1) + random(grid.gridXstep/2) ) + borderX, (grid.gridYstep * (coords[1]-1) + random(grid.gridYstep/2)) + borderY, random(50) + 20, this);
 								cerchi[ccount] = new Cerchio(ics, ipsilon, random(50) + 20, this);
+								// cerchi[ccount].setColor(color(random(255),random(255),random(255),random(50)+20));
+								// cerchi[ccount].setColor(color(0, random(80)+20)); 
 								cerchi[ccount].show();
 								// println("Current circle, x: "+cerchi[ccount].posX+" y: "+cerchi[ccount].posY);
 								
@@ -394,7 +424,7 @@ public class ImageGrid extends PApplet {
 							countBlueFFT += 1;
 							startBlueFFT = millis();
 							
-						}	
+						}
 					}
 				} // blue fft picture manipulation
 				
@@ -430,6 +460,22 @@ public class ImageGrid extends PApplet {
 
 	/** Resize image accordingly with canvas size maintaining proportion */
 	PImage resizeImage(PImage iimg) {
+		float windowRatio, imageRatio;
+		int resX, resY;
+		windowRatio = (width - minborder) / (height - minborder);
+		imageRatio = iimg.width / iimg.height;
+		if (imageRatio>windowRatio) {
+			resX = width - minborder;
+			resY = (int) floor(resX/imageRatio);
+		} else {
+			resY = (height - minborder);
+			resX = (int) floor(resY * imageRatio);
+		};
+		iimg.resize(resX, resY);
+		return iimg;
+	};
+	/*
+	PImage resizeImage(PImage iimg) {
 		  float resRatio, imgDimRatio;
 		  int resX, resY;
 		  imgDimRatio = width/height;
@@ -453,6 +499,7 @@ public class ImageGrid extends PApplet {
 		  iimg.resize(resX, resY);
 		  return iimg;
 	}
+	*/
 	/** draw a grid over the image area */
 	void imageGrid() {
 		
@@ -865,6 +912,7 @@ public class ImageGrid extends PApplet {
 			startBlueFFT = millis();
 			countBlueFFT = 0;
 			
+			return;
 		}
 		
 	}
