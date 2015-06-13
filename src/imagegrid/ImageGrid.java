@@ -96,15 +96,20 @@ public class ImageGrid extends PApplet {
 		isRedFFT = false;
 
 		frameRate(12); // change the frame to speed up the process
-		// size(1440,830, P2D);
-		// size(1440,900, P2D);
-		// minborder = 100;
+
 		// size(1024,768, P2D);
-		size(1024,700, P2D);
-		minborder = 30;
+		// size(1024,700, P2D);
+		// size(1440,830, P2D);
 		// size(400, 300, P2D);
-		// minborder = 20;
+		// Daniele macBookpro resolution minborder 50
+		size(1440,900, P2D);
+		// Dirk Workstation resolution minborder 100
+		// size(2560,1440, P2D);
+		
 		// set the border accordingly to frame size
+		minborder = 50;
+
+
 		
 		 
 //		frame.setLocation(0,0);
@@ -395,7 +400,7 @@ public class ImageGrid extends PApplet {
 								}
 								// cerchi[ccount] = new Cerchio((grid.gridXstep * (coords[0]-1) + random(grid.gridXstep/2) ) + borderX, (grid.gridYstep * (coords[1]-1) + random(grid.gridYstep/2)) + borderY, random(50) + 20, this);
 								cerchi[ccount] = new Cerchio(ics, ipsilon, random(50) + 20, this);
-								// cerchi[ccount].setColor(color(random(255),random(255),random(255),random(50)+20));
+								cerchi[ccount].setColor(color(random(255),random(255),random(255),random(50)+20));
 								// cerchi[ccount].setColor(color(0, random(80)+20)); 
 								cerchi[ccount].show();
 								// println("Current circle, x: "+cerchi[ccount].posX+" y: "+cerchi[ccount].posY);
@@ -462,8 +467,8 @@ public class ImageGrid extends PApplet {
 	PImage resizeImage(PImage iimg) {
 		float windowRatio, imageRatio;
 		int resX, resY;
-		windowRatio = (width - minborder) / (height - minborder);
-		imageRatio = iimg.width / iimg.height;
+		windowRatio = (float) (width - minborder) / (float) (height - minborder);
+		imageRatio = (float) iimg.width / (float) iimg.height;
 		if (imageRatio>windowRatio) {
 			resX = width - minborder;
 			resY = (int) floor(resX/imageRatio);
@@ -472,6 +477,7 @@ public class ImageGrid extends PApplet {
 			resX = (int) floor(resY * imageRatio);
 		};
 		iimg.resize(resX, resY);
+		println("Width: "+resX+" Height: "+resY);
 		return iimg;
 	};
 	/*
@@ -935,14 +941,16 @@ public class ImageGrid extends PApplet {
 		
 		/** change the current drawing style */
 		if ( key == '1') {
-			drawmode = 0; 
+			if (stepTrans > 1) {
+				stepTrans = stepTrans - 1;
+				println("Number of frames per transition: "+stepTrans);
+			}
 		}
 		if (key == '2') {
-			drawmode = 1;
-		}
-		if (key == '3') {
-			drawmode = 2;
-			startFrame = this.frameCount;
+			if (stepTrans < 240) { // set the limit to 20 seconds
+				stepTrans = stepTrans + 1;
+				println("Number of frames per transition: "+stepTrans);
+			}
 		}
 		/** Mask the current image with another image */
 		if (key == 'm') {
@@ -1020,13 +1028,15 @@ public class ImageGrid extends PApplet {
 		}
 
 	}
-
+	
 	/** This function set the frame caracteristics */
 	public void init(){
         if(frame!=null){
           frame.removeNotify();//make the frame not displayable
           frame.setResizable(false);
+          //frame.setLocation(0, 0);
           frame.setUndecorated(true);
+          // frame.setAlwaysOnTop(true);
           println("frame is at "+frame.getLocation());
           frame.addNotify();
         }
@@ -1035,11 +1045,11 @@ public class ImageGrid extends PApplet {
 	
 	/** program entry point */
 	public static void main(String args[]) {
-
-
-		// PApplet.main(new String[] { "--present", imagegrid.ImageGrid.class.getName() });
+		
+		// PApplet.main(new String[] { "--present","--hide-stop", imagegrid.ImageGrid.class.getName() });
 		// PApplet.main(new String[] {imagegrid.ImageGrid.class.getName()} );
-		PApplet.main(new String[] {"--hide-stop", imagegrid.ImageGrid.class.getName()});
+		//  "--location=0,0"
+		PApplet.main(new String[] {"--location=0,0", imagegrid.ImageGrid.class.getName()});
 
 	}
 }
